@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  become: true
+#  remote_user: ansible
+  gather_facts: no
+  pre_tasks:
+  - name: create project directory
+    file:
+      path: "{{ item }}"
+      state: directory
+    loop:
+      - /home/student/test_lab/db
+      - /home/student/test_lab/backend
+      - /home/student/test_lab/proxy
+  roles:
+    - db
+    - backend
+    - proxy
+    - compose

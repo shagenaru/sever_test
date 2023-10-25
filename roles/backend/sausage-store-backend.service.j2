@@ -1,0 +1,15 @@
+[Unit]
+Description=Sausage-store backend jar start
+After=network.target
+
+[Service]
+User=jarservice
+Environment="LOG_PATH=/opt"
+Environment="REPORT_PATH=/var/www-data/htdocs/"
+StandardOutput=append:{{backend_report_dir}}
+StandardError=append:{{backend_report_dir}}
+Restart=always
+ExecStart=/usr/bin/java -jar {{backend_lib_dir}}/sausage-store.jar
+
+[Install]
+WantedBy=multi-user.target

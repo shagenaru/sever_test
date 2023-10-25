@@ -1,0 +1,6 @@
+---
+
+  - name: copy nginx conf file
+    copy:
+      src: nginx.conf
+      dest: /home/student/test_lab/proxy/nginx.conf

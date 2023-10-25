@@ -1,0 +1,71 @@
+---
+
+- hosts: all
+  become: true
+  remote_user: ansible
+  gather_facts: no
+  tasks:
+  - name: update installation
+    apt:
+      upgrade: yes
+      update_cache: yes
+  - name: download node-js install script
+    get_url:
+      url: https://deb.nodesource.com/setup_16.x
+      dest: /home/ansible/setup.sh
+      mode: '775'
+
+  - name: run script
+    command: sh /home/ansible/setup.sh
+
+  - name: install nodejs
+    apt:
+      pkg: nodejs
+
+  - name: install http-server
+    npm:
+      name: http-server 
+      path: /usr/bin
+  
+  - name: Creates directory
+    file:
+      path: /logs
+      state: directory
+  - name: create user
+    user:
+      name: www-data
+  
+  - name: Creates directory
+    file:
+      path: /var/www-data
+      state: directory
+      owner: www-data
+      group: www-data
+      mode: 0775
+ 
+  - name: download frontend files
+    get_url:
+       url: https://nexus.k8s.praktikum-services.tech/repository/sausage-store-Arutiunian-frontend/sausage-store/{{ver}}/frontend-{{ver}}.tar.gz
+       dest: /home/ansible
+       username: "{{user}}"
+       password: "{{pass}}" 
+
+  - name: "unpack tar file"
+    shell:
+      cmd: tar -xvzf /home/ansible/frontend.tar.gz -C /var/www-data
+  
+  - name: "redirect port"
+    shell: iptables -t nat -I PREROUTING -p tcp --dport 8080 -j REDIRECT --to-ports 3000
+
+  - name: "create systemd unit"
+    template:
+      src: sausage-store-frontend.service.j2
+      dest: /etc/systemd/system/sausage-store-frontend.service
+  - name: reload systemd
+    systemd:
+      daemon_reload: yes
+
+  - name: run frontend service
+    service:
+      name: sausage-store-frontend
+      state: started 

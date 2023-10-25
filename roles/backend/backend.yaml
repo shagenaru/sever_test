@@ -1,0 +1,37 @@
+---
+- hosts: all
+  vars:
+      backend_report_dir: /opt/log/sausage-store-backend.log
+      backend_lib_dir: /home/jarservice
+  tasks:
+  - name: Package installation
+    dnf:
+      name:
+        - openjdk-16-jdk
+      state: latest
+  - name: create user
+    user:
+      name: jarservice
+      groups:
+       - jarservice
+  - name: download artefacts
+    maven_artifact:
+      dest: "/home/jarservice/sausage-store.jar"
+      repository_url: "https://nexus.k8s.praktikum-services.tech/repository/sausage-store-Arutiunian-backend/com/yandex/practicum/devops/sausage-store/1.0.743672/sausage-store-1.0.743672.jar"
+      username: std-019-072
+      password: Q5umk22E
+      group_id: "com.yandex.practicum.devops"
+      artifact_id: "sausage-store"
+      version: "0.1.0"
+  - name: "create systemd unit"
+    template:
+      src: sausage-store-backend.service.j2
+      dest: /etc/systemd/system/sausage-store-backend.service
+  - name: reload systemd
+    systemd:
+      daemon_reload: yes
+
+  - name: run backend service
+    service:
+      name: sausage-store-backend
+      state: running 
